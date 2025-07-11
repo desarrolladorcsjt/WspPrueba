@@ -1,4 +1,4 @@
-FROM node:14-alpine as build-deps
+FROM node:20.18.0 as build-deps
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
