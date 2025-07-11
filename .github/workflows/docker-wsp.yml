@@ -1,0 +1,68 @@
+name: Build and Push Docker Images (Frontend & Backend)
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Paso 1: Obtener el código del repositorio
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Paso 2: Configurar Node.js para el frontend
+    - name: Set up Node.js for Frontend
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+
+    # Paso 3: Instalar dependencias del frontend
+    - name: Install dependencies (Frontend)
+      working-directory: ./frontend
+      run: |
+        npm install --force
+
+    # Paso 4: Construir el frontend (si aplica)
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: |
+        CI='' npm run build
+
+    # Paso 5: Construir la imagen Docker del frontend
+    - name: Build Docker image (Frontend)
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/whatsapp-frontend-prueba:latest ./frontend
+
+    # Paso 6: Configurar Node.js para el backend
+    - name: Set up Node.js for Backend
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+
+    # Paso 7: Instalar dependencias del backend
+    - name: Install dependencies (Backend)
+      working-directory: ./backend
+      run: |
+        npm install --force
+
+    # Paso 8: Construir la imagen Docker del backend
+    - name: Build Docker image (Backend)
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/whatsapp-backend-prueba:latest ./backend
+
+    # Paso 9: Iniciar sesión en Docker Hub
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    # Paso 10: Subir las imágenes a Docker Hub
+    - name: Push Docker image (Frontend)
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/whatsapp-frontend-prueba:latest
+
+    - name: Push Docker image (Backend)
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/whatsapp-backend-prueba:latest
